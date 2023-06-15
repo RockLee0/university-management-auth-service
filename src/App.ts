@@ -1,5 +1,8 @@
-import express, { Application, Request, Response } from 'express'
+import express, { Application } from 'express'
 import cors from 'cors'
+
+import globalErrorHandler from './app/modules/users/middlewares/globalErrorHandler'
+import { UserRoutes } from './app/modules/users/user.route'
 const app: Application = express()
 
 app.use(cors())
@@ -8,8 +11,14 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!')
-})
+app.use('/api/v1/users/', UserRoutes)
+// // //testing
+// app.get('/',async(req: Request, res: Response,next:NextFunction) => {
+// //  next('THis a Big errrr'); //by using this,it shows the error globally
+//  console.log(x);
+// })
+
+//global error handler
+app.use(globalErrorHandler)
 
 export default app
