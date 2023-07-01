@@ -9,3 +9,12 @@ export type IGenericErrorResponse = {
 }
 
 export type UserModel = Model<IUser, Record<string, unknown>>
+
+export type IGenericResponse<T> = {
+  meta: {
+    page: number
+    limit: number
+    total: number
+  }
+  data: T
+}

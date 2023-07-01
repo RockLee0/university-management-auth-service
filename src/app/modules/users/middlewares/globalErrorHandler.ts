@@ -8,8 +8,9 @@ import ApiError from '../../../../errors/ApiError'
 import { errorlogger } from '../../../../shared/logger'
 import handleZodError from '../../../../errors/handleZodError'
 import { ZodError } from 'zod'
+import handleCastError from '../../../../errors/handleCastError'
 
-const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
+const globalErrorHandler: ErrorRequestHandler = (error, req, res) => {
   config.env === 'development'
     ? console.log('globalhandler', error)
     : errorlogger.error('globalErrorHandler', error)
@@ -30,7 +31,17 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
   //   message = simplifiedError.message;
   //   errorMessages = simplifiedError.errorMessages;
   // }
-  else if (error instanceof ApiError) {
+  else if (error instanceof ZodError) {
+    const simplifiedError = handleZodError(error)
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+    errorMessages = simplifiedError.errorMessages
+  } else if (error?.name === 'castError') {
+    const simplifiedError = handleCastError(error)
+    statusCode = simplifiedError.statusCode
+    message = simplifiedError.message
+    errorMessages = simplifiedError.errorMessages
+  } else if (error instanceof ApiError) {
     statusCode = error?.statusCode
     message = error.message
     errorMessages = error?.message
@@ -41,11 +52,6 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
           },
         ]
       : []
-  } else if (error instanceof ZodError) {
-    const simplifiedError = handleZodError(error)
-    statusCode = simplifiedError.statusCode
-    message = simplifiedError.message
-    errorMessages = simplifiedError.errorMessages
   } else if (error instanceof Error) {
     message = error?.message
     errorMessages = error?.message
@@ -64,7 +70,6 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
     errorMessages,
     stack: config.env !== 'production' ? error?.stack : undefined,
   })
-  next()
 }
 
 export default globalErrorHandler
